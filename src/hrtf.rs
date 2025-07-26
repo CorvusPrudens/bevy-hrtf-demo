@@ -122,7 +122,7 @@ impl AudioNodeProcessor for HrtfProcessor {
             return ProcessStatus::ClearAllOutputs;
         }
 
-        let input = &mut scratch_buffers[0];
+        let input = &mut scratch_buffers[0][..proc_info.frames];
 
         for frame in 0..proc_info.frames {
             let mut downmixed = 0.0;
