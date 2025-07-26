@@ -47,21 +47,19 @@ fn startup(
     // making sure our sample player entity has a transform.
     //
     // The emitter will circle the listener.
-    for i in 0..16 {
-        commands.spawn((
-            Mesh2d(emitter_circle.clone()),
-            MeshMaterial2d(emitter_material.clone()),
-            SamplePlayer::new(server.load("divine_comedy.ogg"))
-                .looping()
-                .with_volume(Volume::Decibels(-12.0)),
-            Transform::default(),
-            sample_effects![
-                HrtfNode::default(),
-                SendNode::new(Volume::Linear(0.2), reverb)
-            ],
-            Spinner(std::f32::consts::TAU * (i as f32 / 16.0)),
-        ));
-    }
+    commands.spawn((
+        Mesh2d(emitter_circle.clone()),
+        MeshMaterial2d(emitter_material.clone()),
+        SamplePlayer::new(server.load("divine_comedy.ogg"))
+            .looping()
+            .with_volume(Volume::Decibels(-12.0)),
+        Transform::default(),
+        sample_effects![
+            HrtfNode::default(),
+            SendNode::new(Volume::Linear(0.2), reverb)
+        ],
+        Spinner(0.0),
+    ));
 
     // Then, we'll spawn a simple listener.
     //
