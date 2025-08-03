@@ -309,6 +309,8 @@ dependencies = [
  "bevy",
  "bevy_seedling",
  "firewheel",
+ "firewheel-web-audio",
+ "hrtf",
  "sofar",
 ]
 
@@ -2094,6 +2096,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "firewheel-web-audio"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fac388ee4525cf3835dcfdec0188e6accd6f7e6abb7e440bb070594753f7fdcd"
+dependencies = [
+ "firewheel",
+ "js-sys",
+ "log",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "web-sys",
+]
+
+[[package]]
 name = "fixed-resample"
 version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2102,7 +2118,7 @@ dependencies = [
  "arrayvec",
  "fast-interleave",
  "ringbuf",
- "rubato",
+ "rubato 0.16.2",
 ]
 
 [[package]]
@@ -2517,6 +2533,17 @@ name = "hexf-parse"
 version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "dfa686283ad6dd069f105e5ab091b04c62850d3e4cf5d67debad1933f55023df"
+
+[[package]]
+name = "hrtf"
+version = "0.8.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0f4de47a84fd55fa33aa5ef337016814fdc869fdad23e7898b5322fa290248e6"
+dependencies = [
+ "byteorder",
+ "rubato 0.14.1",
+ "rustfft",
+]
 
 [[package]]
 name = "image"
@@ -3782,6 +3809,18 @@ name = "roxmltree"
 version = "0.20.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6c20b6793b5c2fa6553b250154b78d6d0db37e72700ae35fad9387a46f487c97"
+
+[[package]]
+name = "rubato"
+version = "0.14.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e6dd52e80cfc21894deadf554a5673002938ae4625f7a283e536f9cf7c17b0d5"
+dependencies = [
+ "num-complex",
+ "num-integer",
+ "num-traits",
+ "realfft",
+]
 
 [[package]]
 name = "rubato"

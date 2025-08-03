@@ -3,6 +3,10 @@ name = "bevy-hrtf-demo"
 version = "0.1.0"
 edition = "2024"
 
+[features]
+sofar = ["dep:sofar"]
+fyrox = ["dep:hrtf"]
+
 [dependencies]
 bevy = { version = "0.16", default-features = false, features = [
   "animation",
@@ -38,7 +42,12 @@ bevy = { version = "0.16", default-features = false, features = [
 ] }
 bevy_seedling = "0.4.3"
 firewheel = "0.4.3"
-sofar = "0.2.1"
+
+sofar = { version = "0.2.1", optional = true }
+hrtf = { version = "0.8.1", optional = true }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+firewheel-web-audio = "0.1"
 
 [profile.dev.package."*"]
 opt-level = 3

@@ -1,10 +1,9 @@
 //! Head-related transfer function (HRTF) node.
 
+use std::sync::{Arc, OnceLock};
+
 use bevy::prelude::*;
-use bevy_seedling::{
-    prelude::EffectOf,
-    spatial::{SpatialListener2D, SpatialListener3D},
-};
+use bevy_seedling::{SeedlingSystems, prelude::*};
 use firewheel::{
     channel_config::{ChannelConfig, NonZeroChannelCount},
     diff::{Diff, Patch},
@@ -15,15 +14,24 @@ use sofar::{
     render::Renderer,
 };
 
+pub struct SofarPlugin;
+
+impl Plugin for SofarPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_systems(Last, update_hrtf_effects.before(SeedlingSystems::Acquire))
+            .register_node::<SofarHrtfNode>();
+    }
+}
+
 /// Head-related transfer function (HRTF) node.
 #[derive(Debug, Default, Clone, Component, Diff, Patch)]
-pub struct HrtfNode {
+pub struct SofarHrtfNode {
     /// The direction vector pointing from the listener to the
     /// emitter.
     pub direction: Vec3,
 }
 
-/// Configuration for [`HrtfNode`].
+/// Configuration for [`SofarHrtfNode`].
 #[derive(Debug, Clone, Component)]
 pub struct HrtfConfig {
     /// The number of input channels.
@@ -44,12 +52,12 @@ impl Default for HrtfConfig {
 }
 
 struct HrtfProcessor {
-    sofa: Sofar,
+    sofa: Arc<Sofar>,
     renderer: Renderer,
     filter: Filter,
 }
 
-impl AudioNode for HrtfNode {
+impl AudioNode for SofarHrtfNode {
     type Configuration = HrtfConfig;
 
     fn info(&self, config: &Self::Configuration) -> AudioNodeInfo {
@@ -65,10 +73,19 @@ impl AudioNode for HrtfNode {
     ) -> impl firewheel::node::AudioNodeProcessor {
         let sample_rate = cx.stream_info.sample_rate.get() as f32;
 
-        let sofa = OpenOptions::new()
-            .sample_rate(sample_rate)
-            .open("assets/sadie_h12.sofa")
-            .unwrap();
+        static SOFAR: OnceLock<Arc<Sofar>> = OnceLock::new();
+        const SOFAR_BYES: &[u8] = include_bytes!("../assets/sadie_h12.sofa");
+
+        let sofa = SOFAR
+            .get_or_init(|| {
+                Arc::new(
+                    OpenOptions::new()
+                        .sample_rate(sample_rate)
+                        .open_data(SOFAR_BYES)
+                        .unwrap(),
+                )
+            })
+            .clone();
 
         let filt_len = sofa.filter_len();
         let mut filter = Filter::new(filt_len);
@@ -107,7 +124,7 @@ impl AudioNodeProcessor for HrtfProcessor {
         proc_info: &firewheel::node::ProcInfo,
         mut events: firewheel::event::NodeEventList,
     ) -> ProcessStatus {
-        events.for_each_patch::<HrtfNode>(|HrtfNodePatch::Direction(direction)| {
+        events.for_each_patch::<SofarHrtfNode>(|SofarHrtfNodePatch::Direction(direction)| {
             let direction = direction.normalize_or_zero();
 
             // rotate the vector by 90 degrees about the head
@@ -144,9 +161,9 @@ impl AudioNodeProcessor for HrtfProcessor {
     }
 }
 
-pub(crate) fn update_hrtf_effects(
+fn update_hrtf_effects(
     listeners: Query<&GlobalTransform, Or<(With<SpatialListener2D>, With<SpatialListener3D>)>>,
-    mut emitters: Query<(&mut HrtfNode, &EffectOf)>,
+    mut emitters: Query<(&mut SofarHrtfNode, &EffectOf)>,
     effect_parents: Query<&GlobalTransform>,
 ) {
     for (mut spatial, effect_of) in emitters.iter_mut() {
